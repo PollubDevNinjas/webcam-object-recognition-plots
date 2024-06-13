@@ -1,10 +1,11 @@
+import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from extract_data import extract_performance_data, find_files_by_extension
 
 if __name__ == "__main__":
-    data_directory = "data"
+    data_directory = "../data"
 
     performance_files = find_files_by_extension(data_directory, "_performance.xlsx")
 
@@ -27,6 +28,7 @@ if __name__ == "__main__":
     for cpu_type, df_list in power_data_by_cpu.items():
         for df in df_list:
             unique_models.update(df['Model'].unique())
+    unique_models = sorted(unique_models)  # Sort models alphabetically
 
     colors = sns.color_palette('tab10', n_colors=len(unique_models))
 
@@ -35,7 +37,9 @@ if __name__ == "__main__":
     for cpu_type, df_list in power_data_by_cpu.items():
         combined_df = pd.concat(df_list, ignore_index=True)
 
-        plt.figure(figsize=(10, 6))
+        combined_df['Model'] = pd.Categorical(combined_df['Model'], categories=unique_models, ordered=True)
+
+        plt.figure(figsize=(12, 8))
         plt.title(f'Boxplot of Power Usage for CPU Type: {cpu_type}')
         plt.xlabel('Model')
         plt.ylabel('Power Usage (Watt)')

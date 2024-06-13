@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from extract_data import extract_accuracy_data, find_files_by_extension
 
 if __name__ == "__main__":
-    data_directory = "data"
+    data_directory = "../data"
 
     accuracy_files = find_files_by_extension(data_directory, "_accuracy.xlsx")
 
