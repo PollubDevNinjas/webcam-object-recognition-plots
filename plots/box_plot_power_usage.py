@@ -51,3 +51,4 @@ if __name__ == "__main__":
 
         plt.tight_layout()
         plt.show()
+        plt.savefig(f'power_usage_over_time{cpu_type}.png')

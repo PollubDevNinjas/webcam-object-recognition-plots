@@ -11,7 +11,7 @@ def plot_metric_over_time(data_by_cpu, metric, ylabel, title, model_colors):
     for cpu_type, df_list in data_by_cpu.items():
         plt.figure(figsize=(12, 8))
         plt.title(f'{title} for CPU Type: {cpu_type}')
-        plt.xlabel('Elapsed Time (seconds)')
+        plt.xlabel('Elapsed Time (ms)')
         plt.ylabel(ylabel)
 
         for model in unique_models:
@@ -20,7 +20,7 @@ def plot_metric_over_time(data_by_cpu, metric, ylabel, title, model_colors):
                     sns.lineplot(x='elapsed_time', y=metric, data=df[df['Model'] == model], label=model,
                                  color=model_colors[model])
 
-        plt.legend(title='Model', loc='upper left', bbox_to_anchor=(1, 1))
+        plt.legend(title='Model', loc='lower right', bbox_to_anchor=(1, 0))
         plt.grid(True)
         plt.tight_layout()
         plt.show()
@@ -38,13 +38,14 @@ if __name__ == "__main__":
         model_name = data['Main'].get('model', 'Unknown Model')
         cpu_type = data['Main'].get('cpu', 'Unknown CPU')
         resource_df = data['Resource Usages']
+        resource_df['Model'] = model_name
+        # Filter the data to include only the first x milliseconds
+        filtered_resource_df = resource_df[resource_df['elapsed_time'] <= 100]
 
         if cpu_type not in resource_data_by_cpu:
             resource_data_by_cpu[cpu_type] = []
 
-        resource_df['Model'] = model_name
-
-        resource_data_by_cpu[cpu_type].append(resource_df)
+        resource_data_by_cpu[cpu_type].append(filtered_resource_df)
 
     unique_models = set()
     for cpu_type, df_list in resource_data_by_cpu.items():
