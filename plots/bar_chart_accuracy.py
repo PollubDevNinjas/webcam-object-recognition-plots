@@ -40,10 +40,10 @@ if __name__ == "__main__":
     bars1 = plt.bar(index, correct_percentages, bar_width, label='Correct', color='green')
     bars2 = plt.bar(index, incorrect_percentages, bar_width, label='Incorrect', color='red', bottom=correct_percentages)
 
-    plt.xlabel('Model')
-    plt.ylabel('Percentage of Detections (%)')
-    plt.title('Correct vs Incorrect Detections by Model')
-    plt.xticks(index, models, rotation=45)
+    plt.xlabel('Model', fontsize=20)
+    plt.ylabel('Percentage of Detections (%)', fontsize=20)
+    plt.title('Correct vs Incorrect Detections by Model', fontsize=20)
+    plt.xticks(index, models, rotation=45, fontsize=15)
     plt.legend()
 
     for i, (bar1, bar2) in enumerate(zip(bars1, bars2)):
@@ -51,9 +51,9 @@ if __name__ == "__main__":
         height2 = bar2.get_height()
         total_height = height1 + height2
         plt.text(bar1.get_x() + bar1.get_width() / 2., height1 / 2., f'{height1:.1f}%', ha='center', va='center',
-                 color='white', fontsize=10)
+                 color='black', fontsize=20)
         plt.text(bar2.get_x() + bar2.get_width() / 2., height1 + height2 / 2., f'{height2:.1f}%', ha='center',
-                 va='center', color='white', fontsize=10)
+                 va='center', color='white', fontsize=20)
 
     plt.tight_layout()
     plt.show()

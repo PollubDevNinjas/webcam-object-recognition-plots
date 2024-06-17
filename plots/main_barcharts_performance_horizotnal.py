@@ -60,15 +60,18 @@ def plot_metrics(data, metric, std_metric, output_dir):
 
         plt.barh(offsets, x_values, height=bar_height, label=model, xerr=x_errors, capsize=5)
 
-    plt.yticks([r + bar_height * (len(unique_models) - 1) / 2 for r in y_positions], list(cpu_mapping.keys()))
-    plt.title(f'Comparison of {metric} across models and CPUs')
-    plt.xlabel(metric)
-    plt.ylabel('PC')
+    plt.yticks([r + bar_height * (len(unique_models) - 1) / 2 for r in y_positions], list(cpu_mapping.keys()), fontsize=16)
+    plt.title(f'Comparison of {metric} across models and CPUs', fontsize=20)
+    plt.xlabel(metric, fontsize=20)
+    plt.ylabel('PC Number', fontsize=20)
 
     # Adding vertical lines for x-axis labels
     plt.grid(axis='x', linestyle='--', alpha=0.7)
 
-    plt.legend(title='Model')
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
+
+    plt.legend(title='Model', fontsize=14)
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, f'{metric}_comparison.png'))
     plt.close()
