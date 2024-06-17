@@ -1,4 +1,6 @@
 import os
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from extract_data import extract_performance_data, find_files_by_extension
@@ -26,6 +28,35 @@ def plot_metric_over_time(data_by_cpu, metric, ylabel, title, model_colors):
         plt.show()
 
 
+def process_and_interpolate_data(df):
+    """
+    Process the DataFrame to ensure it has exactly 240 points.
+    If the DataFrame has fewer than 240 points, interpolate the data.
+    If the DataFrame has more than 240 points, downsample the data.
+    """
+    target_points = 240
+    df = df.sort_values(by='elapsed_time_percent')
+
+    if len(df) < target_points:
+        # Interpolate to get 240 points
+        interp_df = pd.DataFrame({
+            'elapsed_time_percent': np.linspace(0, 100, target_points)
+        })
+        for column in df.columns:
+            if column != 'elapsed_time_percent' and column != 'Model':
+                interp_df[column] = np.interp(interp_df['elapsed_time_percent'], df['elapsed_time_percent'], df[column])
+        interp_df['Model'] = df['Model'].iloc[0]  # Keep the model name consistent
+    elif len(df) > target_points:
+        # Downsample to get 240 points
+        indices = np.linspace(0, len(df) - 1, target_points).astype(int)
+        interp_df = df.iloc[indices].reset_index(drop=True)
+    else:
+        # Already has 240 points
+        interp_df = df
+
+    return interp_df
+
+
 if __name__ == "__main__":
     data_directory = "../data"
 
@@ -43,6 +74,9 @@ if __name__ == "__main__":
         # Convert elapsed time to percentage of completion
         max_elapsed_time = resource_df['elapsed_time'].max()
         resource_df['elapsed_time_percent'] = (resource_df['elapsed_time'] / max_elapsed_time) * 100
+
+        # Process and interpolate data
+        resource_df = process_and_interpolate_data(resource_df)
 
         if cpu_type not in resource_data_by_cpu:
             resource_data_by_cpu[cpu_type] = []

@@ -15,7 +15,7 @@ if __name__ == "__main__":
         power_df = data['Power Usages']
 
         # Filter the data to include only the first x milliseconds
-        filtered_power_df = power_df[power_df['elapsed_time'] <= 200]
+        filtered_power_df = power_df[power_df['elapsed_time'] <= 100]
 
         if cpu_type not in power_usage_data:
             power_usage_data[cpu_type] = []
