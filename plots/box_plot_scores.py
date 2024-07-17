@@ -21,17 +21,20 @@ if __name__ == "__main__":
 
     combined_df = pd.concat(all_detections, ignore_index=True)
 
+    # Filter out rows where is_correct is 0
+    combined_df = combined_df[combined_df['is_correct'] != 0]
+
     unique_models = combined_df['Model'].unique()
     colors = sns.color_palette('tab10', n_colors=len(unique_models))
 
     model_colors = {model: colors[i] for i, model in enumerate(unique_models)}
 
     plt.figure(figsize=(12, 8))
-    plt.title('Boxplot of Scores for Different Models', fontsize = 20)
-    plt.xlabel('Model', fontsize = 20)
-    plt.ylabel('Score', fontsize = 20)
-    plt.xticks(rotation=45, fontsize = 15)
-    plt.yticks(fontsize = 15)
+    plt.title('Boxplot of Scores for Different Models', fontsize=20)
+    plt.xlabel('Model', fontsize=20)
+    plt.ylabel('Score', fontsize=20)
+    plt.xticks(rotation=45, fontsize=15)
+    plt.yticks(fontsize=15)
     plt.grid(True)
 
     sns.boxplot(x='Model', y='score', data=combined_df, hue='Model', palette=model_colors, dodge=False,

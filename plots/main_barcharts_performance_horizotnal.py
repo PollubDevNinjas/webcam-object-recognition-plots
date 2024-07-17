@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from extract_data import extract_performance_data, find_files_by_extension
 
+
 def load_performance_data(directory):
     files = find_files_by_extension(directory, '_performance.xlsx')
     data = []
@@ -36,6 +37,7 @@ def load_performance_data(directory):
 
     return pd.DataFrame(data)
 
+
 def plot_metrics(data, metric, std_metric, output_dir):
     plt.figure(figsize=(10, 8))  # Adjust figure size for horizontal plot
     unique_cpus = data['cpu'].unique()
@@ -60,7 +62,8 @@ def plot_metrics(data, metric, std_metric, output_dir):
 
         plt.barh(offsets, x_values, height=bar_height, label=model, xerr=x_errors, capsize=5)
 
-    plt.yticks([r + bar_height * (len(unique_models) - 1) / 2 for r in y_positions], list(cpu_mapping.keys()), fontsize=16)
+    plt.yticks([r + bar_height * (len(unique_models) - 1) / 2 for r in y_positions], list(cpu_mapping.keys()),
+               fontsize=16)
     plt.title(f'Comparison of {metric} across models and CPUs', fontsize=20)
     plt.xlabel(metric, fontsize=20)
     plt.ylabel('PC Number', fontsize=20)
@@ -81,6 +84,7 @@ def plot_metrics(data, metric, std_metric, output_dir):
     for pc_label, cpu_type in cpu_mapping.items():
         print(f"{pc_label}: {cpu_type}")
 
+
 def main(data_directory, output_directory):
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
@@ -99,6 +103,7 @@ def main(data_directory, output_directory):
 
     for metric, std_metric in metrics.items():
         plot_metrics(performance_data, metric, std_metric, output_directory)
+
 
 if __name__ == '__main__':
     data_directory = '../data'
