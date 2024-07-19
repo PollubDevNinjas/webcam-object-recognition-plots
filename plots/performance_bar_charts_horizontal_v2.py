@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
+import numpy as np
 
 from extract_data import extract_performance_data, find_files_by_extension
 
@@ -56,37 +57,134 @@ def load_performance_data(directory):
     return pd.DataFrame(data)
 
 
-# Load the performance data
-data = load_performance_data('../data')
+def draw_bar_charts(df, titles=None, x_labels=None, output_dir='horizontal_bar_plots_v2'):
+    stats = {
+        'avg_cpu_usage': 'cpu_usage_std',
+        'cpu_freq_avg': 'cpu_freq_std',
+        'avg_cpu_package_power': 'cpu_package_power_std',
+        'avg_cpu_package_temp': 'cpu_package_temp_std',
+        'avg_memory_usage': 'memory_usage_std',
+        'avg_power_usage': 'power_usage_std',
+        'fps': None
+    }
 
+    # Set default titles if none are provided
+    if titles is None:
+        titles = {
+            'avg_cpu_usage': 'Average CPU Usage with Standard Deviation',
+            'cpu_freq_avg': 'Average CPU Frequency with Standard Deviation',
+            'avg_cpu_package_power': 'Average CPU Package Power with Standard Deviation',
+            'avg_cpu_package_temp': 'Average CPU Package Temperature with Standard Deviation',
+            'avg_memory_usage': 'Average Memory Usage with Standard Deviation',
+            'avg_power_usage': 'Average Power Usage with Standard Deviation',
+            'fps': 'Frames Per Second'
+        }
 
-# Draw horizontal bar charts
-def draw_bar_charts(df):
-    stats = [
-        'avg_detection_time', 'avg_cpu_usage', 'cpu_freq_avg',
-        'avg_cpu_package_power', 'avg_cpu_package_temp',
-        'avg_memory_usage', 'avg_power_usage', 'fps'
-    ]
+    # Set default x-axis labels if none are provided
+    if x_labels is None:
+        x_labels = {
+            'avg_cpu_usage': 'Average CPU Usage (%)',
+            'cpu_freq_avg': 'Average CPU Frequency (GHz)',
+            'avg_cpu_package_power': 'Average CPU Package Power (W)',
+            'avg_cpu_package_temp': 'Average CPU Package Temperature (°C)',
+            'avg_memory_usage': 'Average Memory Usage (GB)',
+            'avg_power_usage': 'Average Power Usage (W)',
+            'fps': 'Frames Per Second'
+        }
 
-    for stat in stats:
+    for stat, std in stats.items():
         plt.figure(figsize=(12, 8))
-        sns.barplot(
-            data=df,
-            y='model_short_name',
-            x=stat,
-            hue='cpu_short_name',
-            orient='h'
-        )
-        plt.title(f'{stat.replace("_", " ").title()} by Model and CPU')
-        plt.xlabel(stat.replace("_", " ").title())
-        plt.ylabel('Model Name')
-        plt.legend( bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol = 4)
+
+        if std:  # If there is a standard deviation column for the stat
+            # Compute the mean values
+            grouped = df.groupby(['model_short_name', 'cpu_short_name'])
+            mean_values = grouped[stat].mean().reset_index()
+
+            # Compute the average standard deviation using the formula
+            std_squared = grouped[std].apply(lambda x: np.mean(x ** 2)).reset_index(name='std_squared')
+            avg_std = np.sqrt(std_squared['std_squared'])
+
+            # Add the average standard deviation to the mean values
+            mean_values[std] = avg_std
+
+            # Plot the bars with error bars
+            ax = sns.barplot(
+                data=mean_values,
+                y='model_short_name',
+                x=stat,
+                hue='cpu_short_name',
+                orient='h',
+                errorbar=None  # Disable default confidence intervals
+            )
+
+            # Add error bars
+            for i, (patch, err) in enumerate(zip(ax.patches, mean_values[std])):
+                # Get the x position and height of the bar
+                x = patch.get_width()
+                y = patch.get_y() + patch.get_height() / 2
+                plt.errorbar(
+                    x=x,
+                    y=y,
+                    xerr=err,
+                    color='black',
+                    capsize=5,
+                    elinewidth=1,
+                    zorder=5  # Ensure error bars are drawn on top of bars
+                )
+        else:
+            # Compute only the mean values if no std exists
+            mean_values = df.groupby(['model_short_name', 'cpu_short_name'])[stat].mean().reset_index()
+            mean_values[std] = np.nan  # Placeholder for std to avoid errors
+
+            ax = sns.barplot(
+                data=mean_values,
+                y='model_short_name',
+                x=stat,
+                hue='cpu_short_name',
+                orient='h',
+                ci=None  # Disable default confidence intervals
+            )
+
+        # Use the provided title if it exists, otherwise use a default title
+        plot_title = titles.get(stat, f'{stat.replace("_", " ").title()} dla modelu i maszyny')
+        plt.title(plot_title)
+
+        # Use the provided x-axis label if it exists, otherwise use a default label
+        x_axis_label = x_labels.get(stat, stat.replace("_", " ").title())
+        plt.xlabel(x_axis_label)
+        plt.ylabel('Model')
+
+        # Add grid lines for better readability
+        plt.grid(axis='x', linestyle='--', linewidth=0.7, color='gray')
+        ax.yaxis.grid(True, linestyle='--', linewidth=0.7, color='gray')
+
+        plt.legend(bbox_to_anchor=(0.5, -0.1), loc='upper center', ncol=4)
+
         plt.tight_layout()
         plt.show()
 
+custom_titles = {
+    'avg_cpu_usage': 'Średnie zużycie procesora',
+    'cpu_freq_avg': 'Średnie taktowanie procesora',
+    'avg_cpu_package_power': 'Śreni pobór mocy procesora',
+    'avg_cpu_package_temp': 'Śrenia temperatura procesora',
+    'avg_memory_usage': 'Średnie zużycie pamięci',
+    'avg_power_usage': 'Średni pobór mocy',
+    'fps': 'Średnia ilość FPS'
+}
 
-# Ensure the data is correct
-print(data)
+custom_x_labels = {
+    'avg_cpu_usage': 'Średnie zużycie procesora (%)',
+    'cpu_freq_avg': 'Średnie taktowanie procesora (MHz)',
+    'avg_cpu_package_power': 'Śreni pobór mocy procesora (W)',
+    'avg_cpu_package_temp': 'Śrenia temperatura procesora (°C)',
+    'avg_memory_usage': 'Średnie zużycie pamięci (MB)',
+    'avg_power_usage': 'Średni pobór mocy (W)',
+    'fps': 'Średnia ilość FPS'
+}
 
-# Draw the bar charts
-draw_bar_charts(data)
+# Load the performance data
+data = load_performance_data('../data')
+
+# Draw the bar charts with custom titles and x-axis labels
+draw_bar_charts(data, titles=custom_titles, x_labels=custom_x_labels)
